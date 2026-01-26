@@ -1,0 +1,2633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Theory & CAPM - Interactive Tool (Version 2)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1400px;
+            width: 100%;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .learning-objectives {
+            background: #fff9e6;
+            border-left: 4px solid #ffd700;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+        }
+
+        .learning-objectives h3 {
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .learning-objectives ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #555;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .learning-objectives li {
+            margin-bottom: 4px;
+        }
+
+        .disclaimer {
+            background: #fff3cd;
+            border-left: 4px solid #ff9800;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #856404;
+            line-height: 1.6;
+        }
+
+        .disclaimer h3 {
+            color: #856404;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .disclaimer p {
+            margin-bottom: 8px;
+        }
+
+        .disclaimer p:last-child {
+            margin-bottom: 0;
+        }
+
+        .disclaimer strong {
+            color: #533f03;
+        }
+
+        .info-note {
+            background: #e8f5e9;
+            border-left: 4px solid #27ae60;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #2d5016;
+            display: none;
+        }
+
+        .info-note.visible {
+            display: block;
+        }
+
+        .info-note strong {
+            color: #1b5e20;
+        }
+
+        .formula-panel {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 350px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1001;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .formula-panel.visible {
+            display: block;
+        }
+
+        .formula-panel h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+
+        .formula-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .formula-item h5 {
+            color: #333;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .formula-item .formula {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #667eea;
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            border: 1px solid #e0e0e0;
+            overflow-x: auto;
+        }
+
+        .formula-item .description {
+            font-size: 11px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .formula-toggle-btn {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            padding: 12px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            z-index: 1002;
+            transition: all 0.3s;
+        }
+
+        .formula-toggle-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .formula-toggle-btn.active {
+            background: #27ae60;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 5px;
+            background: #f0f0f0;
+            border-radius: 8px;
+        }
+
+        .view-toggle button {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid transparent;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .view-toggle button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .view-toggle button:hover:not(.active) {
+            background: #f8f8f8;
+            border-color: #667eea;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 30px;
+        }
+
+        .controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            height: fit-content;
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+        }
+
+        .control-section h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .stock-inputs {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .stock-inputs.active {
+            border-color: #667eea;
+        }
+
+        .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .stock-header h4 {
+            color: #333;
+            font-size: 14px;
+        }
+
+        .stock-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #333;
+        }
+
+        .input-group {
+            margin-bottom: 10px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .correlation-matrix {
+            margin-top: 10px;
+        }
+
+        .correlation-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .correlation-row label {
+            font-size: 11px;
+            color: #666;
+            width: 60px;
+        }
+
+        .correlation-row input {
+            flex: 1;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .num-stocks-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .num-stocks-selector button {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .num-stocks-selector button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .num-stocks-selector button:hover {
+            border-color: #667eea;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .button:hover {
+            background: #5568d3;
+        }
+
+        .visualization {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        canvas {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: crosshair;
+            position: relative;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+            max-width: 250px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .tooltip.visible {
+            display: block;
+        }
+
+        .tooltip h5 {
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #ffd700;
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+            padding-bottom: 4px;
+        }
+
+        .tooltip-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 4px 0;
+            font-size: 11px;
+        }
+
+        .tooltip-row .label {
+            color: #bbb;
+        }
+
+        .tooltip-row .value {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .tooltip-weights {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .tooltip-weight {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+            font-size: 11px;
+        }
+
+        .legend {
+            margin-top: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .legend-symbol {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            border-radius: 50%;
+        }
+
+        .legend-line {
+            width: 20px;
+            height: 3px;
+            margin-right: 8px;
+        }
+
+        .portfolio-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .portfolio-info.visible {
+            display: block;
+        }
+
+        .portfolio-info h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .portfolio-weights {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .weight-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 10px;
+            background: white;
+            border-radius: 4px;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .preset-btn {
+            padding: 8px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .preset-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .preset-btn:hover {
+            background: #f0f0f0;
+            border-color: #667eea;
+        }
+
+        .preset-btn.active:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Portfolio Theory & CAPM (Version 2)</h1>
+        <p class="subtitle">Interactive visualization comparing Markowitz mean-variance optimization with the Capital Asset Pricing Model</p>
+
+        <div class="disclaimer">
+            <h3>⚠️ Educational Use Only</h3>
+            <p><strong>Purpose:</strong> This interactive tool is designed exclusively for educational purposes to help students understand portfolio theory and the Capital Asset Pricing Model (CAPM). It is not intended for actual investment decisions.</p>
+            <p><strong>Important:</strong> The calculations and visualizations are highly sensitive to the input parameters you choose. Unrealistic parameter values (e.g., extreme expected returns, volatilities, or correlations) will produce extreme and potentially misleading results. The outputs are illustrative examples to demonstrate theoretical concepts, not realistic investment guidance.</p>
+            <p><strong>Please note:</strong> This tool simplifies complex financial concepts for learning purposes. Real-world portfolio management involves numerous additional factors, risks, and constraints not captured in this simulation. Do not use these results for actual investment decisions.</p>
+            <p style="font-size: 12px; margin-top: 10px; color: #6c5214;"><em>Created by Matthijs Korevaar, co-produced with Claude Code</em></p>
+        </div>
+
+        <div class="view-toggle">
+            <button id="view-markowitz" class="active">Markowitz View</button>
+            <button id="view-capm">CAPM View</button>
+        </div>
+
+        <div class="info-note" id="info-note">
+            <strong>CAPM Equilibrium Mode:</strong> Stocks are approximately priced according to CAPM theory and fall close to the Security Market Line. This demonstrates market equilibrium where stocks earn returns roughly consistent with their systematic risk (beta). The purple "Market" point represents the market portfolio, which equals the tangency portfolio in equilibrium. Note: By CAPM, any stock with β=1 should have exactly the market return - small deviations show this is an approximation. Switch to other presets to see over/undervalued stocks. Add a hypothetical asset to see how mispricing affects the market.
+        </div>
+
+        <div class="learning-objectives" id="learning-objectives">
+            <h3>What you will observe (Markowitz):</h3>
+            <ul>
+                <li><strong>Diversification benefit:</strong> Portfolios can achieve lower risk than individual stocks</li>
+                <li><strong>Efficient frontier:</strong> The set of portfolios offering maximum return for a given level of risk</li>
+                <li><strong>Risk-return tradeoff:</strong> Higher expected returns generally require accepting higher risk</li>
+                <li><strong>Tangency portfolio:</strong> The optimal risky portfolio when combined with a risk-free asset (maximizes Sharpe ratio)</li>
+            </ul>
+        </div>
+
+        <div class="main-layout">
+            <div class="controls">
+                <div class="control-section">
+                    <h3>Number of Stocks</h3>
+                    <div class="num-stocks-selector">
+                        <button data-num="2">2 Stocks</button>
+                        <button data-num="3" class="active">3 Stocks</button>
+                        <button data-num="4">4 Stocks</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Preset Examples</h3>
+                    <div class="preset-buttons">
+                        <button class="preset-btn active" data-preset="default">Mixed</button>
+                        <button class="preset-btn" data-preset="capm_equilibrium">CAPM Equilibrium</button>
+                        <button class="preset-btn" data-preset="diverse">Diverse Assets</button>
+                        <button class="preset-btn" data-preset="correlated">High Correlation</button>
+                        <button class="preset-btn" data-preset="negative">Negative Corr.</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Stock Parameters</h3>
+                    <div id="stock-inputs-container"></div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Risk-Free Asset</h3>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="include-rf" checked>
+                        <label for="include-rf">Include Risk-Free Asset</label>
+                    </div>
+                    <div class="input-group">
+                        <label>Risk-Free Rate (%)</label>
+                        <input type="number" id="rf-rate" value="3" step="0.1" min="0" max="20">
+                    </div>
+                    <div class="checkbox-group" style="margin-top: 10px;">
+                        <input type="checkbox" id="show-cal-portfolios" checked>
+                        <label for="show-cal-portfolios">Show CML Portfolios</label>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Utility Curves</h3>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="show-utility-curves">
+                        <label for="show-utility-curves">Show Indifference Curves</label>
+                    </div>
+                    <div id="utility-inputs" style="display: none; margin-top: 10px;">
+                        <div class="input-group">
+                            <label>Risk Aversion (A): <span id="risk-aversion-value">3.0</span></label>
+                            <input type="range" id="risk-aversion" min="0.5" max="10" step="0.5" value="3"
+                                   style="width: 100%; cursor: pointer;">
+                            <div style="display: flex; justify-content: space-between; font-size: 10px; color: #999; margin-top: 2px;">
+                                <span>Risk Tolerant</span>
+                                <span>Risk Averse</span>
+                            </div>
+                        </div>
+                        <div style="background: #fff9e6; padding: 8px; border-radius: 4px; font-size: 11px; color: #666; margin-top: 8px;">
+                            Utility: U = E(R) - (A/2) × σ²<br>
+                            Higher A = more risk averse
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section" id="market-section">
+                    <h3>Market Portfolio (Calculated)</h3>
+                    <div style="background: #e3f2fd; padding: 10px; border-radius: 4px; font-size: 12px; color: #1565c0; margin-bottom: 10px;">
+                        <strong>Market = Tangency Portfolio</strong><br>
+                        <span style="font-size: 11px;">Automatically calculated from your stocks. In equilibrium, the market portfolio equals the tangency portfolio.</span>
+                    </div>
+                    <div id="market-display" style="font-size: 12px; color: #666;">
+                        <!-- Market stats will be displayed here -->
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Hypothetical Asset</h3>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="include-hypothetical">
+                        <label for="include-hypothetical">Add Hypothetical Asset</label>
+                    </div>
+                    <div id="hypothetical-inputs" style="display: none; margin-top: 10px;">
+                        <div class="input-group">
+                            <label>Expected Return (%)</label>
+                            <input type="number" id="hypo-return" value="15" step="0.5" min="-20" max="50">
+                        </div>
+                        <div class="input-group">
+                            <label>Standard Deviation (%)</label>
+                            <input type="number" id="hypo-std" value="20" step="0.5" min="0.1" max="100">
+                        </div>
+                        <div class="input-group">
+                            <label>Correlation with Market</label>
+                            <input type="number" id="hypo-corr" value="0.6" step="0.05" min="-1" max="1">
+                        </div>
+                    </div>
+                </div>
+
+                <button class="button" onclick="updateVisualization()">Update Chart</button>
+            </div>
+
+            <div class="visualization" style="position: relative;">
+                <canvas id="chart" width="800" height="600"></canvas>
+                <div id="tooltip" class="tooltip"></div>
+
+                <div class="legend" id="legend">
+                    <!-- Legend will be updated dynamically -->
+                </div>
+
+                <div class="portfolio-info" id="portfolio-info">
+                    <h4>Portfolio Details</h4>
+                    <div id="portfolio-details"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="formula-toggle-btn" id="formula-toggle-btn" onclick="toggleFormulas()">📐 Show Formulas</button>
+
+    <div class="formula-panel" id="formula-panel">
+        <h4 id="formula-panel-title">Formulas</h4>
+        <div id="formula-content">
+            <!-- Formulas will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let numStocks = 3;
+        let stocks = [];
+        let includeRF = true;
+        let rfRate = 0.03;
+        let currentView = 'markowitz'; // 'markowitz' or 'capm'
+        let marketReturn = 0.10; // Calculated from tangency portfolio
+        let marketStd = 0.18; // Calculated from tangency portfolio
+        let showCALPortfolios = true;
+        let showFormulas = false;
+        let includeHypothetical = false;
+        let showUtilityCurves = false;
+        let riskAversion = 3.0; // A parameter in utility function
+        let hypotheticalAsset = {
+            name: 'Hypothetical',
+            mean: 15,
+            std: 20,
+            marketCorr: 0.6,
+            color: '#95a5a6'
+        };
+        let allPortfoliosWithCoords = []; // Store portfolios with screen coordinates for hover
+        let scaleXFunc, scaleYFunc; // Store scale functions for hover
+
+        const stockColors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12'];
+
+        // Preset configurations
+        const presets = {
+            capm_equilibrium: {
+                2: [
+                    {name: 'Defensive', mean: 6.5, std: 12, color: stockColors[0]},
+                    {name: 'Aggressive', mean: 13.5, std: 24, color: stockColors[1]}
+                ],
+                3: [
+                    {name: 'Defensive', mean: 6.5, std: 12, color: stockColors[0]},
+                    {name: 'Balanced', mean: 10, std: 18, color: stockColors[1]},
+                    {name: 'Aggressive', mean: 13.5, std: 24, color: stockColors[2]}
+                ],
+                4: [
+                    {name: 'Defensive', mean: 6.5, std: 12, color: stockColors[0]},
+                    {name: 'Balanced', mean: 10, std: 18, color: stockColors[1]},
+                    {name: 'Aggressive', mean: 13.5, std: 24, color: stockColors[2]},
+                    {name: 'Very Aggressive', mean: 17, std: 30, color: stockColors[3]}
+                ]
+            },
+            default: {
+                2: [
+                    {name: 'Stock A', mean: 10, std: 15, color: stockColors[0]},
+                    {name: 'Stock B', mean: 8, std: 20, color: stockColors[1]}
+                ],
+                3: [
+                    {name: 'Stock A', mean: 10, std: 15, color: stockColors[0]},
+                    {name: 'Stock B', mean: 8, std: 20, color: stockColors[1]},
+                    {name: 'Stock C', mean: 12, std: 25, color: stockColors[2]}
+                ],
+                4: [
+                    {name: 'Stock A', mean: 10, std: 15, color: stockColors[0]},
+                    {name: 'Stock B', mean: 8, std: 20, color: stockColors[1]},
+                    {name: 'Stock C', mean: 12, std: 25, color: stockColors[2]},
+                    {name: 'Stock D', mean: 7, std: 12, color: stockColors[3]}
+                ]
+            },
+            diverse: {
+                2: [
+                    {name: 'Bonds', mean: 5, std: 8, color: stockColors[0]},
+                    {name: 'Stocks', mean: 12, std: 20, color: stockColors[1]}
+                ],
+                3: [
+                    {name: 'Bonds', mean: 5, std: 8, color: stockColors[0]},
+                    {name: 'Stocks', mean: 12, std: 20, color: stockColors[1]},
+                    {name: 'Real Estate', mean: 9, std: 15, color: stockColors[2]}
+                ],
+                4: [
+                    {name: 'Bonds', mean: 5, std: 8, color: stockColors[0]},
+                    {name: 'Stocks', mean: 12, std: 20, color: stockColors[1]},
+                    {name: 'Real Estate', mean: 9, std: 15, color: stockColors[2]},
+                    {name: 'Gold', mean: 6, std: 18, color: stockColors[3]}
+                ]
+            },
+            correlated: {
+                2: [
+                    {name: 'Tech A', mean: 15, std: 25, color: stockColors[0]},
+                    {name: 'Tech B', mean: 14, std: 24, color: stockColors[1]}
+                ],
+                3: [
+                    {name: 'Tech A', mean: 15, std: 25, color: stockColors[0]},
+                    {name: 'Tech B', mean: 14, std: 24, color: stockColors[1]},
+                    {name: 'Tech C', mean: 16, std: 26, color: stockColors[2]}
+                ],
+                4: [
+                    {name: 'Tech A', mean: 15, std: 25, color: stockColors[0]},
+                    {name: 'Tech B', mean: 14, std: 24, color: stockColors[1]},
+                    {name: 'Tech C', mean: 16, std: 26, color: stockColors[2]},
+                    {name: 'Tech D', mean: 13, std: 23, color: stockColors[3]}
+                ]
+            },
+            negative: {
+                2: [
+                    {name: 'Ice Cream', mean: 10, std: 20, color: stockColors[0]},
+                    {name: 'Umbrella', mean: 8, std: 18, color: stockColors[1]}
+                ],
+                3: [
+                    {name: 'Ice Cream', mean: 10, std: 20, color: stockColors[0]},
+                    {name: 'Umbrella', mean: 8, std: 18, color: stockColors[1]},
+                    {name: 'Gold', mean: 6, std: 15, color: stockColors[2]}
+                ],
+                4: [
+                    {name: 'Ice Cream', mean: 10, std: 20, color: stockColors[0]},
+                    {name: 'Umbrella', mean: 8, std: 18, color: stockColors[1]},
+                    {name: 'Gold', mean: 6, std: 15, color: stockColors[2]},
+                    {name: 'Bonds', mean: 4, std: 8, color: stockColors[3]}
+                ]
+            }
+        };
+
+        // Default correlations by preset
+        const defaultCorrelations = {
+            capm_equilibrium: [[1, 0.6, 0.6, 0.6], [0.6, 1, 0.6, 0.6], [0.6, 0.6, 1, 0.6], [0.6, 0.6, 0.6, 1]],
+            default: [[1, 0.3, 0.2, 0.1], [0.3, 1, 0.4, 0.2], [0.2, 0.4, 1, 0.3], [0.1, 0.2, 0.3, 1]],
+            diverse: [[1, 0.1, 0.3, -0.2], [0.1, 1, 0.5, -0.1], [0.3, 0.5, 1, 0.0], [-0.2, -0.1, 0.0, 1]],
+            correlated: [[1, 0.8, 0.75, 0.7], [0.8, 1, 0.8, 0.75], [0.75, 0.8, 1, 0.8], [0.7, 0.75, 0.8, 1]],
+            negative: [[1, -0.5, 0.0, 0.2], [-0.5, 1, -0.3, 0.1], [0.0, -0.3, 1, 0.3], [0.2, 0.1, 0.3, 1]]
+        };
+
+        let currentPreset = 'default';
+        let correlationMatrix = defaultCorrelations.default;
+
+        // Toggle formulas display
+        function toggleFormulas() {
+            showFormulas = !showFormulas;
+            const panel = document.getElementById('formula-panel');
+            const btn = document.getElementById('formula-toggle-btn');
+
+            if (showFormulas) {
+                panel.classList.add('visible');
+                btn.classList.add('active');
+                btn.textContent = '📐 Hide Formulas';
+                updateFormulaContent();
+            } else {
+                panel.classList.remove('visible');
+                btn.classList.remove('active');
+                btn.textContent = '📐 Show Formulas';
+            }
+        }
+
+        // Update formula content based on view
+        function updateFormulaContent() {
+            const content = document.getElementById('formula-content');
+            const title = document.getElementById('formula-panel-title');
+
+            if (currentView === 'markowitz') {
+                title.textContent = 'Markowitz Portfolio Theory Formulas';
+                content.innerHTML = `
+                    <div class="formula-item">
+                        <h5>Portfolio Expected Return</h5>
+                        <div class="formula">E(Rp) = Σ wi × E(Ri)</div>
+                        <div class="description">Weighted average of individual stock returns</div>
+                    </div>
+
+                    <div class="formula-item">
+                        <h5>Portfolio Variance</h5>
+                        <div class="formula">σp² = Σi Σj wi × wj × Cov(i,j)</div>
+                        <div class="description">where Cov(i,j) = ρij × σi × σj</div>
+                    </div>
+
+                    <div class="formula-item">
+                        <h5>Portfolio Standard Deviation</h5>
+                        <div class="formula">σp = √(σp²)</div>
+                        <div class="description">Square root of portfolio variance</div>
+                    </div>
+
+                    <div class="formula-item">
+                        <h5>Sharpe Ratio</h5>
+                        <div class="formula">SR = (E(Rp) - Rf) / σp</div>
+                        <div class="description">Excess return per unit of risk; tangency portfolio maximizes this</div>
+                    </div>
+
+                    <div class="formula-item">
+                        <h5>Capital Market Line (CML)</h5>
+                        <div class="formula">E(Rp) = Rf + [(E(Rm) - Rf) / σm] × σp</div>
+                        <div class="description">Expected return for portfolios combining risk-free asset and market portfolio (tangency portfolio). The CML has the steepest slope = Sharpe ratio of market portfolio.</div>
+                    </div>
+
+                    <div class="formula-item">
+                        <h5>CML Portfolio Weights</h5>
+                        <div class="formula">w_market = σp / σm</div>
+                        <div class="formula">w_rf = 1 - w_market</div>
+                        <div class="description">When w_market > 1: borrowing (shorting RF)<br>When w_market < 1: lending</div>
+                    </div>
+                `;
+            } else {
+                title.textContent = 'CAPM Formulas';
+                content.innerHTML = `
+                    <div class="formula-item">
+                        <h5>Market Portfolio in Equilibrium</h5>
+                        <div class="formula">Market Portfolio = Tangency Portfolio</div>
+                        <div class="description">In equilibrium, the market portfolio equals the tangency portfolio from Markowitz theory</div>
+                    </div>
+
+                    <div class="formula-item">
+                        <h5>Capital Asset Pricing Model</h5>
+                        <div class="formula">E(Ri) = Rf + βi × (E(Rm) - Rf)</div>
+                        <div class="description">Required return based on systematic risk; Rm is market return (tangency portfolio)</div>
+                    </div>
+
+                    <div class="formula-item">
+                        <h5>Beta (Systematic Risk)</h5>
+                        <div class="formula">βi = Cov(Ri, Rm) / Var(Rm)</div>
+                        <div class="formula">βi = ρim × (σi / σm)</div>
+                        <div class="description">Measures stock's sensitivity to market (tangency) portfolio movements</div>
+                    </div>
+
+                    <div class="formula-item">
+                        <h5>Jensen's Alpha</h5>
+                        <div class="formula">αi = E(Ri) - [Rf + βi × (E(Rm) - Rf)]</div>
+                        <div class="description">Excess return above CAPM prediction</div>
+                    </div>
+
+                    <div class="formula-item">
+                        <h5>Security Market Line (SML)</h5>
+                        <div class="formula">E(R) = Rf + β × (E(Rm) - Rf)</div>
+                        <div class="description">Shows equilibrium: stocks on SML have α = 0<br>Above SML: α > 0 (undervalued)<br>Below SML: α < 0 (overvalued)</div>
+                    </div>
+
+                    <div class="formula-item">
+                        <h5>Market Portfolio Properties</h5>
+                        <div class="formula">βm = 1.0</div>
+                        <div class="description">By definition, market has beta of 1</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Draw utility curves (indifference curves)
+        function drawUtilityCurves(ctx, scaleX, scaleY, tangencyPortfolio, efficientFrontier, xMin, xMax, yMin, yMax) {
+            // Find optimal portfolio based on utility maximization
+            let optimalPortfolio;
+            let maxUtility = -Infinity;
+
+            if (includeRF && tangencyPortfolio) {
+                // With risk-free asset: optimal is on CML
+                // We can analytically find it: optimal weight in market portfolio
+                // Utility: U = E(R) - (A/2) * σ²
+                // On CML: E(R) = Rf + SR * σ, where SR is Sharpe ratio
+                // U = Rf + SR * σ - (A/2) * σ²
+                // Maximize: dU/dσ = SR - A * σ = 0
+                // Optimal σ = SR / A
+                const sharpeRatio = (tangencyPortfolio.return - rfRate) / tangencyPortfolio.std;
+                const optimalStd = sharpeRatio / riskAversion;
+                const optimalReturn = rfRate + sharpeRatio * optimalStd;
+                const optimalWeight = optimalStd / tangencyPortfolio.std;
+
+                optimalPortfolio = {
+                    std: optimalStd,
+                    return: optimalReturn,
+                    weight: optimalWeight,
+                    onCML: true
+                };
+                maxUtility = optimalReturn - (riskAversion / 2) * optimalStd * optimalStd;
+            } else {
+                // Without risk-free asset: find optimal on efficient frontier
+                efficientFrontier.forEach(p => {
+                    const utility = p.return - (riskAversion / 2) * p.std * p.std;
+                    if (utility > maxUtility) {
+                        maxUtility = utility;
+                        optimalPortfolio = { ...p, onCML: false };
+                    }
+                });
+            }
+
+            // Draw multiple indifference curves around the optimal utility
+            const utilityLevels = [
+                maxUtility - 0.04,
+                maxUtility - 0.02,
+                maxUtility,
+                maxUtility + 0.02,
+                maxUtility + 0.04
+            ];
+
+            utilityLevels.forEach((U, idx) => {
+                // Draw indifference curve: E(R) = U + (A/2) * σ²
+                ctx.strokeStyle = idx === 2 ? '#ff1744' : 'rgba(255, 23, 68, 0.3)';
+                ctx.lineWidth = idx === 2 ? 2.5 : 1.5;
+                ctx.setLineDash(idx === 2 ? [] : [5, 3]);
+                ctx.beginPath();
+
+                let firstPoint = true;
+                for (let sigma = 0; sigma <= xMax * 1.2; sigma += (xMax / 200)) {
+                    const expectedReturn = U + (riskAversion / 2) * sigma * sigma;
+
+                    // Only draw if within reasonable bounds
+                    if (expectedReturn >= yMin && expectedReturn <= yMax * 1.2) {
+                        const x = scaleX(sigma);
+                        const y = scaleY(expectedReturn);
+
+                        if (firstPoint) {
+                            ctx.moveTo(x, y);
+                            firstPoint = false;
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+            });
+
+            // Highlight optimal portfolio
+            if (optimalPortfolio) {
+                const optX = scaleX(optimalPortfolio.std);
+                const optY = scaleY(optimalPortfolio.return);
+
+                // Draw highlighting circle
+                ctx.strokeStyle = '#ff1744';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(optX, optY, 15, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Draw inner dot
+                ctx.fillStyle = '#ff1744';
+                ctx.beginPath();
+                ctx.arc(optX, optY, 6, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Label
+                ctx.fillStyle = '#ff1744';
+                ctx.font = 'bold 11px sans-serif';
+                ctx.textAlign = 'center';
+                const labelText = optimalPortfolio.onCML ?
+                    `Optimal (${(optimalPortfolio.weight * 100).toFixed(0)}% Market)` :
+                    'Optimal Portfolio';
+                ctx.fillText(labelText, optX, optY - 22);
+
+                // Add to hover with high priority
+                allPortfoliosWithCoords.unshift({
+                    ...optimalPortfolio,
+                    weights: tangencyPortfolio ? tangencyPortfolio.weights : [],
+                    screenX: optX,
+                    screenY: optY,
+                    isOptimalUtility: true,
+                    utilityValue: maxUtility,
+                    riskAversionUsed: riskAversion
+                });
+            }
+        }
+
+        // Initialize
+        function init() {
+            initializeStocks();
+            setupEventListeners();
+            updateLegend();
+            updateVisualization();
+        }
+
+        function initializeStocks() {
+            stocks = presets[currentPreset][numStocks].map(s => ({...s}));
+        }
+
+        function setupEventListeners() {
+            // View toggle
+            document.getElementById('view-markowitz').addEventListener('click', () => {
+                currentView = 'markowitz';
+                document.getElementById('view-markowitz').classList.add('active');
+                document.getElementById('view-capm').classList.remove('active');
+                updateLearningObjectives();
+                if (showFormulas) updateFormulaContent();
+                updateVisualization();
+            });
+
+            document.getElementById('view-capm').addEventListener('click', () => {
+                currentView = 'capm';
+                document.getElementById('view-capm').classList.add('active');
+                document.getElementById('view-markowitz').classList.remove('active');
+                updateLearningObjectives();
+                if (showFormulas) updateFormulaContent();
+                updateVisualization();
+            });
+
+            // Number of stocks selector
+            document.querySelectorAll('.num-stocks-selector button').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.num-stocks-selector button').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    numStocks = parseInt(e.target.dataset.num);
+                    initializeStocks();
+                    renderStockInputs();
+                    updateVisualization();
+                });
+            });
+
+            // Preset buttons
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    currentPreset = e.target.dataset.preset;
+                    correlationMatrix = defaultCorrelations[currentPreset];
+                    initializeStocks();
+                    renderStockInputs();
+                    updateLearningObjectives();
+                    updateVisualization();
+                });
+            });
+
+            // Risk-free checkbox
+            document.getElementById('include-rf').addEventListener('change', (e) => {
+                includeRF = e.target.checked;
+                updateVisualization();
+            });
+
+            // Risk-free rate
+            document.getElementById('rf-rate').addEventListener('input', (e) => {
+                rfRate = parseFloat(e.target.value) / 100;
+                updateVisualization();
+            });
+
+            // Show CAL portfolios
+            document.getElementById('show-cal-portfolios').addEventListener('change', (e) => {
+                showCALPortfolios = e.target.checked;
+                updateVisualization();
+            });
+
+            // Utility curves toggle
+            document.getElementById('show-utility-curves').addEventListener('change', (e) => {
+                showUtilityCurves = e.target.checked;
+                document.getElementById('utility-inputs').style.display =
+                    showUtilityCurves ? 'block' : 'none';
+                updateVisualization();
+            });
+
+            // Risk aversion slider
+            document.getElementById('risk-aversion').addEventListener('input', (e) => {
+                riskAversion = parseFloat(e.target.value);
+                document.getElementById('risk-aversion-value').textContent = riskAversion.toFixed(1);
+                updateVisualization();
+            });
+
+            // Hypothetical asset toggle
+            document.getElementById('include-hypothetical').addEventListener('change', (e) => {
+                includeHypothetical = e.target.checked;
+                document.getElementById('hypothetical-inputs').style.display =
+                    includeHypothetical ? 'block' : 'none';
+                updateVisualization();
+            });
+
+            // Hypothetical asset inputs
+            document.getElementById('hypo-return').addEventListener('input', (e) => {
+                hypotheticalAsset.mean = parseFloat(e.target.value);
+                updateVisualization();
+            });
+
+            document.getElementById('hypo-std').addEventListener('input', (e) => {
+                hypotheticalAsset.std = parseFloat(e.target.value);
+                updateVisualization();
+            });
+
+            document.getElementById('hypo-corr').addEventListener('input', (e) => {
+                hypotheticalAsset.marketCorr = parseFloat(e.target.value);
+                updateVisualization();
+            });
+
+            // Canvas hover
+            const canvas = document.getElementById('chart');
+            canvas.addEventListener('mousemove', handleCanvasHover);
+            canvas.addEventListener('mouseleave', hideTooltip);
+
+            renderStockInputs();
+        }
+
+        function handleCanvasHover(e) {
+            const canvas = document.getElementById('chart');
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            // Find nearest portfolio
+            let minDist = Infinity;
+            let nearestPortfolio = null;
+
+            // Search distance based on point type (larger points = larger search radius)
+            allPortfoliosWithCoords.forEach(p => {
+                const dx = p.screenX - mouseX;
+                const dy = p.screenY - mouseY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                const threshold = p.isTangency ? 15 : (p.isIndividualStock ? 12 : 10);
+
+                if (dist < minDist && dist < threshold) {
+                    minDist = dist;
+                    nearestPortfolio = p;
+                }
+            });
+
+            // Check if near CAL line in Markowitz view
+            if (currentView === 'markowitz' && includeRF && !nearestPortfolio && window.calLineData) {
+                const calPortfolio = checkCALLineHover(mouseX, mouseY);
+                if (calPortfolio) {
+                    showTooltip(calPortfolio, e.clientX, e.clientY, rect);
+                    return;
+                }
+            }
+
+            if (nearestPortfolio) {
+                showTooltip(nearestPortfolio, e.clientX, e.clientY, rect);
+            } else {
+                hideTooltip();
+            }
+        }
+
+        // Check if mouse is near CAL line and calculate portfolio at that point
+        function checkCALLineHover(mouseX, mouseY) {
+            if (!window.calLineData) return null;
+
+            const { rfX, rfY, tanX, tanY, tangencyPortfolio } = window.calLineData;
+
+            // Calculate distance from point to line segment
+            const lineLength = Math.sqrt((tanX - rfX) ** 2 + (tanY - rfY) ** 2);
+
+            // Vector from RF to mouse
+            const dx = mouseX - rfX;
+            const dy = mouseY - rfY;
+
+            // Vector from RF to tangency
+            const lineDx = tanX - rfX;
+            const lineDy = tanY - rfY;
+
+            // Project mouse onto line
+            const t = Math.max(0, (dx * lineDx + dy * lineDy) / (lineLength ** 2));
+
+            // Point on line closest to mouse
+            const projX = rfX + t * lineDx;
+            const projY = rfY + t * lineDy;
+
+            // Distance from mouse to projected point
+            const distToLine = Math.sqrt((mouseX - projX) ** 2 + (mouseY - projY) ** 2);
+
+            // If within threshold distance from line
+            if (distToLine < 15) {
+                // Calculate portfolio allocation
+                const distFromRF = Math.sqrt((projX - rfX) ** 2 + (projY - rfY) ** 2);
+                const distRFtoTan = Math.sqrt((tanX - rfX) ** 2 + (tanY - rfY) ** 2);
+                const weightTangency = distFromRF / distRFtoTan;
+
+                // Calculate portfolio std and return
+                const portStd = weightTangency * tangencyPortfolio.std;
+                const portReturn = rfRate + weightTangency * (tangencyPortfolio.return - rfRate);
+
+                return {
+                    return: portReturn,
+                    std: portStd,
+                    weights: tangencyPortfolio.weights,
+                    screenX: projX,
+                    screenY: projY,
+                    isCALPortfolio: true,
+                    calWeight: weightTangency,
+                    calLabel: `${(weightTangency * 100).toFixed(0)}% Tangency`
+                };
+            }
+
+            return null;
+        }
+
+        function showTooltip(portfolio, pageX, pageY, canvasRect) {
+            const tooltip = document.getElementById('tooltip');
+            const visualization = document.querySelector('.visualization');
+            const vizRect = visualization.getBoundingClientRect();
+
+            // Convert page coordinates to visualization-relative coordinates
+            const relativeX = pageX - vizRect.left;
+            const relativeY = pageY - vizRect.top;
+
+            let title = 'Portfolio Details';
+            if (portfolio.isOptimalUtility) {
+                title = '🎯 Optimal Portfolio (Max Utility)';
+            } else if (portfolio.isTangency) {
+                title = '⭐ Tangency Portfolio';
+            } else if (portfolio.isCALPortfolio) {
+                title = 'CML Portfolio: ' + portfolio.calLabel;
+            } else if (portfolio.isIndividualStock) {
+                title = portfolio.stockName;
+            } else if (portfolio.isEfficient) {
+                title = 'Efficient Portfolio';
+            }
+
+            let html = `<h5>${title}</h5>`;
+
+            // CAL Portfolio specific information
+            if (portfolio.isCALPortfolio) {
+                const weightTangency = portfolio.calWeight;
+                const weightRF = 1 - weightTangency;
+
+                html += `
+                    <div class="tooltip-row">
+                        <span class="label">Expected Return:</span>
+                        <span class="value">${(portfolio.return * 100).toFixed(2)}%</span>
+                    </div>
+                    <div class="tooltip-row">
+                        <span class="label">Std Deviation:</span>
+                        <span class="value">${(portfolio.std * 100).toFixed(2)}%</span>
+                    </div>
+                `;
+
+                if (includeRF) {
+                    const sharpe = ((portfolio.return - rfRate) / portfolio.std).toFixed(3);
+                    html += `
+                        <div class="tooltip-row">
+                            <span class="label">Sharpe Ratio:</span>
+                            <span class="value">${sharpe}</span>
+                        </div>
+                    `;
+                }
+
+                html += '<div class="tooltip-weights">';
+                html += `
+                    <div class="tooltip-weight">
+                        <span style="color: #ffd700">Tangency Portfolio:</span>
+                        <span style="font-weight: bold;">${(weightTangency * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="tooltip-weight">
+                        <span style="color: #2ecc71">Risk-Free Asset:</span>
+                        <span style="font-weight: bold;">${(weightRF * 100).toFixed(1)}%</span>
+                    </div>
+                `;
+
+                if (weightTangency > 1.0) {
+                    html += `
+                        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.3); font-size: 10px; color: #ffd700;">
+                            ⚠️ Leveraged: Borrowing at risk-free rate
+                        </div>
+                    `;
+                }
+
+                html += '</div>';
+
+                tooltip.innerHTML = html;
+
+                // Position tooltip - use the common positioning logic below
+                // (fall through to the shared positioning code)
+            }
+
+            // CAPM-specific information
+            if (portfolio.isCAPMView && portfolio.isIndividualStock) {
+                html += `
+                    <div class="tooltip-row">
+                        <span class="label">Actual Return:</span>
+                        <span class="value">${(portfolio.return * 100).toFixed(2)}%</span>
+                    </div>
+                    <div class="tooltip-row">
+                        <span class="label">Beta (β):</span>
+                        <span class="value">${portfolio.beta.toFixed(3)}</span>
+                    </div>
+                    <div class="tooltip-row">
+                        <span class="label">Expected (CAPM):</span>
+                        <span class="value">${(portfolio.expectedReturnCAPM * 100).toFixed(2)}%</span>
+                    </div>
+                    <div class="tooltip-row">
+                        <span class="label">Alpha (α):</span>
+                        <span class="value" style="color: ${portfolio.alpha > 0 ? '#27ae60' : '#e74c3c'}">${(portfolio.alpha * 100).toFixed(2)}%</span>
+                    </div>
+                    <div class="tooltip-row">
+                        <span class="label">Valuation:</span>
+                        <span class="value" style="color: ${portfolio.alpha > 0 ? '#27ae60' : '#e74c3c'}">
+                            ${portfolio.alpha > 0 ? 'Undervalued ↑' : (portfolio.alpha < 0 ? 'Overvalued ↓' : 'Fair')}
+                        </span>
+                    </div>
+                `;
+
+                if (portfolio.isHypothetical) {
+                    html += `
+                        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.3); font-size: 10px; color: #ffd700;">
+                            ℹ️ This is a hypothetical asset to demonstrate CAPM deviations
+                        </div>
+                    `;
+                }
+            } else {
+                // Markowitz view information
+                html += `
+                    <div class="tooltip-row">
+                        <span class="label">Expected Return:</span>
+                        <span class="value">${(portfolio.return * 100).toFixed(2)}%</span>
+                    </div>
+                    <div class="tooltip-row">
+                        <span class="label">Std Deviation:</span>
+                        <span class="value">${(portfolio.std * 100).toFixed(2)}%</span>
+                    </div>
+                `;
+
+                if (includeRF && !portfolio.isCAPMView) {
+                    const sharpe = ((portfolio.return - rfRate) / portfolio.std).toFixed(3);
+                    html += `
+                        <div class="tooltip-row">
+                            <span class="label">Sharpe Ratio:</span>
+                            <span class="value">${sharpe}</span>
+                        </div>
+                    `;
+                }
+
+                // Show utility if this is the optimal utility portfolio
+                if (portfolio.isOptimalUtility) {
+                    html += `
+                        <div class="tooltip-row">
+                            <span class="label">Utility (U):</span>
+                            <span class="value" style="color: #ff1744">${(portfolio.utilityValue * 100).toFixed(2)}%</span>
+                        </div>
+                        <div class="tooltip-row">
+                            <span class="label">Risk Aversion (A):</span>
+                            <span class="value">${portfolio.riskAversionUsed.toFixed(1)}</span>
+                        </div>
+                    `;
+
+                    if (portfolio.onCML) {
+                        html += `
+                            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.3); font-size: 10px; color: #ffd700;">
+                                On CML: ${(portfolio.weight * 100).toFixed(1)}% in Market, ${((1 - portfolio.weight) * 100).toFixed(1)}% in RF
+                            </div>
+                        `;
+                    }
+                }
+
+                // Show weights if available
+                if (portfolio.weights && portfolio.weights.length > 0) {
+                    html += '<div class="tooltip-weights">';
+                    portfolio.weights.forEach((w, idx) => {
+                        html += `
+                            <div class="tooltip-weight">
+                                <span style="color: ${stocks[idx].color}">${stocks[idx].name}:</span>
+                                <span style="font-weight: bold;">${(w * 100).toFixed(1)}%</span>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+            }
+
+            tooltip.innerHTML = html;
+
+            // Show tooltip first (invisible) to get dimensions
+            tooltip.style.visibility = 'hidden';
+            tooltip.classList.add('visible');
+
+            // Get tooltip dimensions
+            const tooltipRect = tooltip.getBoundingClientRect();
+            const tooltipWidth = tooltipRect.width;
+            const tooltipHeight = tooltipRect.height;
+
+            // Boundaries relative to visualization container
+            const padding = 10;
+            const minX = padding;
+            const minY = padding;
+            const maxX = vizRect.width - padding;
+            const maxY = vizRect.height - padding;
+
+            // Start with cursor position offset (try to place to right and below)
+            // Use visualization-relative coordinates
+            let tooltipX = relativeX + 10;
+            let tooltipY = relativeY + 10;
+
+            // Check right edge - if tooltip would go off right edge, place it to the left of cursor
+            if (tooltipX + tooltipWidth > maxX) {
+                tooltipX = relativeX - tooltipWidth - 10;
+            }
+
+            // Check left edge - if still off left edge, clamp to min boundary
+            if (tooltipX < minX) {
+                tooltipX = minX;
+            }
+
+            // Check bottom edge - if tooltip would go off bottom, place it above cursor
+            if (tooltipY + tooltipHeight > maxY) {
+                tooltipY = relativeY - tooltipHeight - 10;
+            }
+
+            // Check top edge - if still off top edge, clamp to min boundary
+            if (tooltipY < minY) {
+                tooltipY = minY;
+            }
+
+            // Final safety checks - ensure tooltip fits within bounds
+            if (tooltipX + tooltipWidth > maxX) {
+                tooltipX = maxX - tooltipWidth;
+            }
+            if (tooltipY + tooltipHeight > maxY) {
+                tooltipY = maxY - tooltipHeight;
+            }
+
+            // Ensure minimum position
+            if (tooltipX < minX) {
+                tooltipX = minX;
+            }
+            if (tooltipY < minY) {
+                tooltipY = minY;
+            }
+
+            // Apply final position and make visible (using visualization-relative coordinates)
+            tooltip.style.left = tooltipX + 'px';
+            tooltip.style.top = tooltipY + 'px';
+            tooltip.style.visibility = 'visible';
+        }
+
+        function hideTooltip() {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.classList.remove('visible');
+        }
+
+        function renderStockInputs() {
+            const container = document.getElementById('stock-inputs-container');
+            container.innerHTML = '';
+
+            stocks.forEach((stock, idx) => {
+                const div = document.createElement('div');
+                div.className = 'stock-inputs active';
+                div.innerHTML = `
+                    <div class="stock-header">
+                        <h4>${stock.name}</h4>
+                        <div class="stock-color" style="background: ${stock.color};"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>Expected Return (%)</label>
+                        <input type="number" class="stock-mean" data-idx="${idx}" value="${stock.mean}" step="0.5" min="-20" max="50">
+                    </div>
+                    <div class="input-group">
+                        <label>Standard Deviation (%)</label>
+                        <input type="number" class="stock-std" data-idx="${idx}" value="${stock.std}" step="0.5" min="0.1" max="100">
+                    </div>
+                    <div class="correlation-matrix">
+                        <label style="font-size: 11px; color: #666; display: block; margin-bottom: 5px;">Correlations with:</label>
+                        ${stocks.map((s, i) => {
+                            if (i <= idx) return '';
+                            return `
+                                <div class="correlation-row">
+                                    <label>${s.name}:</label>
+                                    <input type="number" class="stock-corr" data-i="${idx}" data-j="${i}"
+                                           value="${correlationMatrix[idx][i].toFixed(2)}" step="0.05" min="-1" max="1">
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+                container.appendChild(div);
+
+                // Add event listeners
+                div.querySelector('.stock-mean').addEventListener('input', (e) => {
+                    stocks[idx].mean = parseFloat(e.target.value);
+                });
+
+                div.querySelector('.stock-std').addEventListener('input', (e) => {
+                    stocks[idx].std = parseFloat(e.target.value);
+                });
+
+                div.querySelectorAll('.stock-corr').forEach(input => {
+                    input.addEventListener('input', (e) => {
+                        const i = parseInt(e.target.dataset.i);
+                        const j = parseInt(e.target.dataset.j);
+                        const val = parseFloat(e.target.value);
+                        correlationMatrix[i][j] = val;
+                        correlationMatrix[j][i] = val; // Symmetric
+                    });
+                });
+            });
+        }
+
+        // Portfolio calculations
+        function calculatePortfolio(weights) {
+            // Convert percentages to decimals
+            const means = stocks.map(s => s.mean / 100);
+            const stds = stocks.map(s => s.std / 100);
+
+            // Expected return
+            const expectedReturn = weights.reduce((sum, w, i) => sum + w * means[i], 0);
+
+            // Build covariance matrix
+            const n = stocks.length;
+            const covMatrix = Array(n).fill(0).map(() => Array(n).fill(0));
+
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    if (i === j) {
+                        covMatrix[i][j] = stds[i] * stds[i];
+                    } else {
+                        covMatrix[i][j] = correlationMatrix[i][j] * stds[i] * stds[j];
+                    }
+                }
+            }
+
+            // Portfolio variance: w' * Cov * w
+            let variance = 0;
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    variance += weights[i] * weights[j] * covMatrix[i][j];
+                }
+            }
+
+            const stdDev = Math.sqrt(variance);
+
+            return {
+                return: expectedReturn,
+                std: stdDev,
+                weights: weights
+            };
+        }
+
+        // Generate random portfolios
+        function generateRandomPortfolios(count = 20000) {
+            const portfolios = [];
+            const n = stocks.length;
+
+            for (let iter = 0; iter < count; iter++) {
+                // Generate random weights that sum to 1
+                const weights = Array(n).fill(0).map(() => Math.random());
+                const sum = weights.reduce((a, b) => a + b, 0);
+                const normalizedWeights = weights.map(w => w / sum);
+
+                const portfolio = calculatePortfolio(normalizedWeights);
+                portfolios.push(portfolio);
+            }
+
+            return portfolios;
+        }
+
+        // Find efficient frontier
+        function findEfficientFrontier(portfolios) {
+            // Sort by standard deviation
+            const sorted = portfolios.sort((a, b) => a.std - b.std);
+
+            // For each std level, keep only the portfolio with max return
+            const efficient = [];
+            let maxReturnSoFar = -Infinity;
+
+            for (const p of sorted) {
+                if (p.return > maxReturnSoFar) {
+                    efficient.push(p);
+                    maxReturnSoFar = p.return;
+                }
+            }
+
+            return efficient;
+        }
+
+        // Find tangency portfolio
+        function findTangencyPortfolio() {
+            // Use optimization - maximize Sharpe ratio
+            let bestSharpe = -Infinity;
+            let bestPortfolio = null;
+
+            const n = stocks.length;
+            const samples = 30000;
+
+            for (let iter = 0; iter < samples; iter++) {
+                const weights = Array(n).fill(0).map(() => Math.random());
+                const sum = weights.reduce((a, b) => a + b, 0);
+                const normalizedWeights = weights.map(w => w / sum);
+
+                const portfolio = calculatePortfolio(normalizedWeights);
+                const sharpe = (portfolio.return - rfRate) / portfolio.std;
+
+                if (sharpe > bestSharpe) {
+                    bestSharpe = sharpe;
+                    bestPortfolio = portfolio;
+                }
+            }
+
+            return bestPortfolio;
+        }
+
+        // Calculate beta for a stock relative to market
+        function calculateBeta(stockIdx, tangencyPortfolio) {
+            const stockReturn = stocks[stockIdx].mean / 100;
+            const stockStd = stocks[stockIdx].std / 100;
+
+            // Market portfolio = tangency portfolio
+            const marketReturn = tangencyPortfolio.return;
+            const marketStd = tangencyPortfolio.std;
+
+            // Calculate covariance between stock and market (tangency portfolio)
+            // Cov(stock, market) = Σ w_i * Cov(stock, asset_i)
+            const stds = stocks.map(s => s.std / 100);
+            let covariance = 0;
+
+            for (let i = 0; i < stocks.length; i++) {
+                const weight = tangencyPortfolio.weights[i];
+                const covWithAsset = (i === stockIdx) ?
+                    stds[i] * stds[i] : // Variance when same asset
+                    correlationMatrix[stockIdx][i] * stds[stockIdx] * stds[i];
+                covariance += weight * covWithAsset;
+            }
+
+            // Beta = Cov(stock, market) / Var(market)
+            const marketVariance = marketStd * marketStd;
+            const beta = covariance / marketVariance;
+
+            // Calculate correlation for display
+            const marketCorr = covariance / (stockStd * marketStd);
+
+            return { beta, marketCorr };
+        }
+
+        // Calculate beta for hypothetical asset
+        function calculateHypotheticalBeta(tangencyPortfolio) {
+            const hypoStd = hypotheticalAsset.std / 100;
+            const marketStd = tangencyPortfolio.std;
+
+            // Beta = ρ * (σ_hypo / σ_market)
+            const beta = hypotheticalAsset.marketCorr * (hypoStd / marketStd);
+
+            return { beta, marketCorr: hypotheticalAsset.marketCorr };
+        }
+
+        // Calculate alpha (Jensen's alpha)
+        function calculateAlpha(stockIdx, beta, marketReturn) {
+            const stockReturn = stocks[stockIdx].mean / 100;
+            const expectedReturn = rfRate + beta * (marketReturn - rfRate);
+            const alpha = stockReturn - expectedReturn;
+            return alpha;
+        }
+
+        // Update market portfolio display
+        function updateMarketDisplay(tangencyPortfolio) {
+            const display = document.getElementById('market-display');
+            if (!tangencyPortfolio) {
+                display.innerHTML = '<em>Calculate chart to see market portfolio</em>';
+                return;
+            }
+
+            const sharpe = ((tangencyPortfolio.return - rfRate) / tangencyPortfolio.std).toFixed(3);
+
+            let html = `
+                <div style="padding: 8px; background: white; border-radius: 4px; margin-bottom: 6px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+                        <span style="color: #666;">Expected Return:</span>
+                        <strong>${(tangencyPortfolio.return * 100).toFixed(2)}%</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+                        <span style="color: #666;">Std Deviation:</span>
+                        <strong>${(tangencyPortfolio.std * 100).toFixed(2)}%</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #666;">Sharpe Ratio:</span>
+                        <strong>${sharpe}</strong>
+                    </div>
+                </div>
+                <div style="font-size: 11px; color: #666; margin-top: 6px;">
+                    <strong>Portfolio Weights:</strong><br>
+            `;
+
+            tangencyPortfolio.weights.forEach((w, idx) => {
+                html += `<span style="color: ${stocks[idx].color}">${stocks[idx].name}</span>: ${(w * 100).toFixed(1)}%<br>`;
+            });
+
+            html += '</div>';
+            display.innerHTML = html;
+        }
+
+        // Update learning objectives based on view
+        function updateLearningObjectives() {
+            const objectives = document.getElementById('learning-objectives');
+            const infoNote = document.getElementById('info-note');
+
+            // Show info note only in CAPM view with CAPM equilibrium preset
+            if (currentView === 'capm' && currentPreset === 'capm_equilibrium') {
+                infoNote.classList.add('visible');
+            } else {
+                infoNote.classList.remove('visible');
+            }
+
+            if (currentView === 'markowitz') {
+                let markowitzObjectives = `
+                    <h3>What you will observe (Markowitz):</h3>
+                    <ul>
+                        <li><strong>Diversification benefit:</strong> Portfolios can achieve lower risk than individual stocks</li>
+                        <li><strong>Efficient frontier:</strong> The set of portfolios offering maximum return for a given level of risk</li>
+                        <li><strong>Risk-return tradeoff:</strong> Higher expected returns generally require accepting higher risk</li>
+                        <li><strong>Tangency portfolio:</strong> The optimal risky portfolio when combined with a risk-free asset (maximizes Sharpe ratio); defines the Capital Market Line (CML)</li>
+                `;
+
+                if (showUtilityCurves) {
+                    markowitzObjectives += `
+                        <li><strong>Utility curves (indifference curves):</strong> Show investor preferences based on risk aversion. Optimal portfolio is where utility is maximized (tangent to CML or efficient frontier)</li>
+                    `;
+                }
+
+                markowitzObjectives += `</ul>`;
+                objectives.innerHTML = markowitzObjectives;
+            } else {
+                objectives.innerHTML = `
+                    <h3>What you will observe (CAPM):</h3>
+                    <ul>
+                        <li><strong>Market Portfolio = Tangency Portfolio:</strong> In equilibrium, the market portfolio is the tangency portfolio from Markowitz theory</li>
+                        <li><strong>Security Market Line (SML):</strong> Shows required return based on systematic risk (beta)</li>
+                        <li><strong>Beta (β):</strong> Measures stock's sensitivity to market movements (systematic risk)</li>
+                        <li><strong>Alpha (α):</strong> Excess return above CAPM prediction - stocks above SML are undervalued</li>
+                        <li><strong>CAPM equation:</strong> E(R) = Rf + β × (Rm - Rf) - required return based on risk</li>
+                    </ul>
+                `;
+            }
+        }
+
+        // Update legend based on view
+        function updateLegend() {
+            const legend = document.getElementById('legend');
+
+            if (currentView === 'markowitz') {
+                let legendHTML = `
+                    <div class="legend-item">
+                        <div class="legend-symbol" style="background: #ff6b6b;"></div>
+                        <span>Individual Stocks</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-line" style="background: #4ecdc4;"></div>
+                        <span>Efficient Frontier</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-line" style="background: #95e1d3;"></div>
+                        <span>All Portfolios</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-line" style="background: #ff9f43;"></div>
+                        <span>Capital Market Line (CML)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-symbol" style="background: #ffd700; border: 2px solid #333;"></div>
+                        <span>Tangency Portfolio</span>
+                    </div>
+                `;
+
+                if (showCALPortfolios && includeRF) {
+                    legendHTML += `
+                        <div class="legend-item">
+                            <div class="legend-symbol" style="background: #3498db;"></div>
+                            <span>CML: Lending (< 100% M)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-symbol" style="background: #e67e22;"></div>
+                            <span>CML: Borrowing (> 100% M)</span>
+                        </div>
+                    `;
+                }
+
+                if (showUtilityCurves) {
+                    legendHTML += `
+                        <div class="legend-item">
+                            <div class="legend-line" style="background: #ff1744;"></div>
+                            <span>Indifference Curves (Utility)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-symbol" style="background: #ff1744; border: 2px solid #333;"></div>
+                            <span>Optimal Portfolio (Max U)</span>
+                        </div>
+                    `;
+                }
+
+                legend.innerHTML = legendHTML;
+            } else {
+                let capmLegendHTML = `
+                    <div class="legend-item">
+                        <div class="legend-line" style="background: #ff6b6b;"></div>
+                        <span>Security Market Line (SML)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-symbol" style="background: #27ae60;"></div>
+                        <span>Undervalued (α > 0)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-symbol" style="background: #e74c3c;"></div>
+                        <span>Overvalued (α < 0)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-symbol" style="background: #9b59b6;"></div>
+                        <span>Market Portfolio (= Tangency)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-symbol" style="background: #2ecc71;"></div>
+                        <span>Risk-Free Asset</span>
+                    </div>
+                `;
+
+                if (includeHypothetical) {
+                    capmLegendHTML += `
+                        <div class="legend-item">
+                            <div class="legend-symbol" style="background: #95a5a6; width: 20px; height: 20px; border-radius: 0;"></div>
+                            <span>Hypothetical Asset</span>
+                        </div>
+                    `;
+                }
+
+                legend.innerHTML = capmLegendHTML;
+            }
+        }
+
+        // Visualization
+        function updateVisualization() {
+            updateLegend();
+            if (currentView === 'markowitz') {
+                drawMarkowitzView();
+            } else {
+                drawCAPMView();
+            }
+        }
+
+        // Draw CAPM View
+        function drawCAPMView() {
+            const canvas = document.getElementById('chart');
+            const ctx = canvas.getContext('2d');
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Clear CAL line data (not in Markowitz view)
+            window.calLineData = null;
+
+            // First, calculate tangency portfolio to use as market
+            const allPortfolios = generateRandomPortfolios(20000);
+            const tangencyPortfolio = findTangencyPortfolio();
+
+            if (!tangencyPortfolio) {
+                ctx.fillStyle = '#666';
+                ctx.font = '16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Unable to calculate market portfolio', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            // Market portfolio = tangency portfolio
+            const marketReturn = tangencyPortfolio.return;
+            const marketStd = tangencyPortfolio.std;
+
+            // Update market display
+            updateMarketDisplay(tangencyPortfolio);
+
+            // Calculate betas and alphas for each stock
+            const stocksWithBeta = stocks.map((stock, idx) => {
+                const { beta, marketCorr } = calculateBeta(idx, tangencyPortfolio);
+                const alpha = calculateAlpha(idx, beta, marketReturn);
+                const expectedReturnCAPM = rfRate + beta * (marketReturn - rfRate);
+                return {
+                    ...stock,
+                    beta,
+                    alpha,
+                    actualReturn: stock.mean / 100,
+                    expectedReturnCAPM,
+                    marketCorr,
+                    isOvervalued: alpha < 0,
+                    isUndervalued: alpha > 0
+                };
+            });
+
+            // Handle hypothetical asset if included
+            let hypotheticalWithBeta = null;
+            if (includeHypothetical) {
+                const { beta, marketCorr } = calculateHypotheticalBeta(tangencyPortfolio);
+                const hypoReturn = hypotheticalAsset.mean / 100;
+                const expectedReturnCAPM = rfRate + beta * (marketReturn - rfRate);
+                const alpha = hypoReturn - expectedReturnCAPM;
+
+                hypotheticalWithBeta = {
+                    ...hypotheticalAsset,
+                    beta,
+                    alpha,
+                    actualReturn: hypoReturn,
+                    expectedReturnCAPM,
+                    marketCorr,
+                    isOvervalued: alpha < 0,
+                    isUndervalued: alpha > 0,
+                    isHypothetical: true
+                };
+            }
+
+            // Find bounds for scaling
+            const allBetas = stocksWithBeta.map(s => s.beta);
+            const allReturns = stocksWithBeta.map(s => s.actualReturn);
+
+            // Include hypothetical if present
+            if (hypotheticalWithBeta) {
+                allBetas.push(hypotheticalWithBeta.beta);
+                allReturns.push(hypotheticalWithBeta.actualReturn);
+            }
+
+            const minBeta = 0;
+            const maxBeta = Math.max(...allBetas, 1.5);
+            const minReturn = Math.min(0, rfRate, ...allReturns);
+            const maxReturn = Math.max(...allReturns, marketReturn);
+
+            // Add padding
+            const padding = 0.15;
+            const betaRange = maxBeta - minBeta;
+            const returnRange = maxReturn - minReturn;
+
+            const xMin = 0;
+            const xMax = maxBeta + betaRange * padding;
+            const yMin = Math.min(0, minReturn - returnRange * padding);
+            const yMax = maxReturn + returnRange * padding;
+
+            // Drawing parameters
+            const marginLeft = 60;
+            const marginRight = 30;
+            const marginTop = 30;
+            const marginBottom = 50;
+            const plotWidth = canvas.width - marginLeft - marginRight;
+            const plotHeight = canvas.height - marginTop - marginBottom;
+
+            // Scale functions
+            const scaleX = (beta) => marginLeft + ((beta - xMin) / (xMax - xMin)) * plotWidth;
+            const scaleY = (ret) => canvas.height - marginBottom - ((ret - yMin) / (yMax - yMin)) * plotHeight;
+
+            // Store scale functions globally for hover
+            scaleXFunc = scaleX;
+            scaleYFunc = scaleY;
+
+            // Clear portfolio storage for hover
+            allPortfoliosWithCoords = [];
+
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(marginLeft, marginTop);
+            ctx.lineTo(marginLeft, canvas.height - marginBottom);
+            ctx.lineTo(canvas.width - marginRight, canvas.height - marginBottom);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#333';
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Beta (β) - Systematic Risk', canvas.width / 2, canvas.height - 10);
+
+            ctx.save();
+            ctx.translate(15, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Expected Return', 0, 0);
+            ctx.restore();
+
+            // Draw grid
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            const numGridLines = 5;
+
+            for (let i = 0; i <= numGridLines; i++) {
+                const x = marginLeft + (i / numGridLines) * plotWidth;
+                const y = canvas.height - marginBottom - (i / numGridLines) * plotHeight;
+
+                // Vertical grid
+                ctx.beginPath();
+                ctx.moveTo(x, marginTop);
+                ctx.lineTo(x, canvas.height - marginBottom);
+                ctx.stroke();
+
+                // Horizontal grid
+                ctx.beginPath();
+                ctx.moveTo(marginLeft, y);
+                ctx.lineTo(canvas.width - marginRight, y);
+                ctx.stroke();
+
+                // X-axis labels (Beta)
+                const betaVal = xMin + (i / numGridLines) * (xMax - xMin);
+                ctx.fillStyle = '#666';
+                ctx.font = '11px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(betaVal.toFixed(2), x, canvas.height - marginBottom + 20);
+
+                // Y-axis labels (Return)
+                const retVal = yMin + (i / numGridLines) * (yMax - yMin);
+                ctx.textAlign = 'right';
+                ctx.fillText((retVal * 100).toFixed(1) + '%', marginLeft - 10, y + 4);
+            }
+
+            // Draw Security Market Line (SML)
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([]);
+            ctx.beginPath();
+
+            // SML: E(R) = Rf + β(Rm - Rf)
+            const beta0 = 0;
+            const return0 = rfRate;
+            const beta2 = xMax;
+            const return2 = rfRate + beta2 * (marketReturn - rfRate);
+
+            ctx.moveTo(scaleX(beta0), scaleY(return0));
+            ctx.lineTo(scaleX(beta2), scaleY(return2));
+            ctx.stroke();
+
+            // Label SML
+            ctx.fillStyle = '#ff6b6b';
+            ctx.font = 'bold 13px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('SML', scaleX(beta2) - 50, scaleY(return2) - 10);
+
+            // Draw market portfolio point
+            const marketBeta = 1.0;
+            const marketX = scaleX(marketBeta);
+            const marketY = scaleY(marketReturn);
+
+            ctx.fillStyle = '#9b59b6';
+            ctx.beginPath();
+            ctx.arc(marketX, marketY, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Market', marketX, marketY - 15);
+
+            // Draw risk-free point
+            const rfX = scaleX(0);
+            const rfY = scaleY(rfRate);
+
+            ctx.fillStyle = '#2ecc71';
+            ctx.beginPath();
+            ctx.arc(rfX, rfY, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#27ae60';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 11px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('RF', rfX + 10, rfY + 4);
+
+            // Draw individual stocks
+            stocksWithBeta.forEach((stock, idx) => {
+                const x = scaleX(stock.beta);
+                const y = scaleY(stock.actualReturn);
+
+                // Color based on over/undervalued
+                if (stock.isUndervalued) {
+                    ctx.fillStyle = '#27ae60'; // Green for undervalued (above SML)
+                } else if (stock.isOvervalued) {
+                    ctx.fillStyle = '#e74c3c'; // Red for overvalued (below SML)
+                } else {
+                    ctx.fillStyle = stock.color;
+                }
+
+                ctx.beginPath();
+                ctx.arc(x, y, 10, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw line to SML to show alpha
+                const expectedY = scaleY(stock.expectedReturnCAPM);
+                ctx.strokeStyle = stock.isUndervalued ? '#27ae60' : '#e74c3c';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 3]);
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x, expectedY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Label
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'center';
+                const labelY = stock.alpha > 0 ? y - 15 : y + 25;
+                ctx.fillText(stock.name, x, labelY);
+
+                // Add to hover detection
+                const weights = Array(stocks.length).fill(0);
+                weights[idx] = 1;
+                allPortfoliosWithCoords.push({
+                    return: stock.actualReturn,
+                    std: stock.std / 100,
+                    weights,
+                    screenX: x,
+                    screenY: y,
+                    stockName: stock.name,
+                    isIndividualStock: true,
+                    beta: stock.beta,
+                    alpha: stock.alpha,
+                    expectedReturnCAPM: stock.expectedReturnCAPM,
+                    isCAPMView: true
+                });
+            });
+
+            // Draw hypothetical asset if included
+            if (hypotheticalWithBeta) {
+                const x = scaleX(hypotheticalWithBeta.beta);
+                const y = scaleY(hypotheticalWithBeta.actualReturn);
+
+                // Color based on over/undervalued
+                if (hypotheticalWithBeta.isUndervalued) {
+                    ctx.fillStyle = '#27ae60';
+                } else if (hypotheticalWithBeta.isOvervalued) {
+                    ctx.fillStyle = '#e74c3c';
+                } else {
+                    ctx.fillStyle = hypotheticalWithBeta.color;
+                }
+
+                // Draw with different shape (square) to distinguish
+                ctx.fillRect(x - 10, y - 10, 20, 20);
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2.5;
+                ctx.strokeRect(x - 10, y - 10, 20, 20);
+
+                // Draw line to SML
+                const expectedY = scaleY(hypotheticalWithBeta.expectedReturnCAPM);
+                ctx.strokeStyle = hypotheticalWithBeta.isUndervalued ? '#27ae60' : '#e74c3c';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 3]);
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x, expectedY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Label
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'center';
+                const labelY = hypotheticalWithBeta.alpha > 0 ? y - 18 : y + 28;
+                ctx.fillText('Hypothetical', x, labelY);
+
+                // Add to hover detection
+                allPortfoliosWithCoords.push({
+                    return: hypotheticalWithBeta.actualReturn,
+                    std: hypotheticalWithBeta.std / 100,
+                    weights: [], // Not part of base portfolio
+                    screenX: x,
+                    screenY: y,
+                    stockName: 'Hypothetical Asset',
+                    isIndividualStock: true,
+                    isHypothetical: true,
+                    beta: hypotheticalWithBeta.beta,
+                    alpha: hypotheticalWithBeta.alpha,
+                    expectedReturnCAPM: hypotheticalWithBeta.expectedReturnCAPM,
+                    isCAPMView: true
+                });
+            }
+
+            // Hide tangency portfolio info in CAPM view
+            document.getElementById('portfolio-info').classList.remove('visible');
+        }
+
+        // Draw Markowitz View
+        function drawMarkowitzView() {
+            const canvas = document.getElementById('chart');
+            const ctx = canvas.getContext('2d');
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Clear CAL line data initially
+            window.calLineData = null;
+
+            // Generate portfolios
+            const allPortfolios = generateRandomPortfolios(20000);
+            const efficientFrontier = findEfficientFrontier(allPortfolios);
+
+            // Calculate individual stocks as portfolios
+            const individualStocks = stocks.map((_, idx) => {
+                const weights = Array(stocks.length).fill(0);
+                weights[idx] = 1;
+                return calculatePortfolio(weights);
+            });
+
+            // Find tangency portfolio if RF included
+            let tangencyPortfolio = null;
+            if (includeRF) {
+                tangencyPortfolio = findTangencyPortfolio();
+                // Update market display (tangency = market in equilibrium)
+                updateMarketDisplay(tangencyPortfolio);
+            } else {
+                updateMarketDisplay(null);
+            }
+
+            // Find bounds for scaling
+            const allPoints = [...allPortfolios, ...individualStocks];
+            if (tangencyPortfolio) allPoints.push(tangencyPortfolio);
+
+            const maxStd = Math.max(...allPoints.map(p => p.std));
+            const minReturn = Math.min(...allPoints.map(p => p.return), rfRate);
+            const maxReturn = Math.max(...allPoints.map(p => p.return));
+
+            // Add padding
+            const padding = 0.1;
+            const stdRange = maxStd; // Range from 0 to maxStd
+            const returnRange = maxReturn - minReturn;
+
+            // Force origin (0,0) to be included in the plot
+            const xMin = 0;
+            const xMax = maxStd + stdRange * padding;
+            const yMin = Math.min(0, minReturn - returnRange * padding);
+            const yMax = maxReturn + returnRange * padding;
+
+            // Drawing parameters
+            const marginLeft = 60;
+            const marginRight = 30;
+            const marginTop = 30;
+            const marginBottom = 50;
+            const plotWidth = canvas.width - marginLeft - marginRight;
+            const plotHeight = canvas.height - marginTop - marginBottom;
+
+            // Scale functions
+            const scaleX = (std) => marginLeft + ((std - xMin) / (xMax - xMin)) * plotWidth;
+            const scaleY = (ret) => canvas.height - marginBottom - ((ret - yMin) / (yMax - yMin)) * plotHeight;
+
+            // Store scale functions globally for hover
+            scaleXFunc = scaleX;
+            scaleYFunc = scaleY;
+
+            // Clear and prepare portfolio storage for hover
+            allPortfoliosWithCoords = [];
+
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(marginLeft, marginTop);
+            ctx.lineTo(marginLeft, canvas.height - marginBottom);
+            ctx.lineTo(canvas.width - marginRight, canvas.height - marginBottom);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#333';
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Standard Deviation (Risk)', canvas.width / 2, canvas.height - 10);
+
+            ctx.save();
+            ctx.translate(15, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Expected Return', 0, 0);
+            ctx.restore();
+
+            // Draw grid
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            const numGridLines = 5;
+
+            for (let i = 0; i <= numGridLines; i++) {
+                const x = marginLeft + (i / numGridLines) * plotWidth;
+                const y = canvas.height - marginBottom - (i / numGridLines) * plotHeight;
+
+                // Vertical grid
+                ctx.beginPath();
+                ctx.moveTo(x, marginTop);
+                ctx.lineTo(x, canvas.height - marginBottom);
+                ctx.stroke();
+
+                // Horizontal grid
+                ctx.beginPath();
+                ctx.moveTo(marginLeft, y);
+                ctx.lineTo(canvas.width - marginRight, y);
+                ctx.stroke();
+
+                // X-axis labels
+                const stdVal = xMin + (i / numGridLines) * (xMax - xMin);
+                ctx.fillStyle = '#666';
+                ctx.font = '11px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText((stdVal * 100).toFixed(1) + '%', x, canvas.height - marginBottom + 20);
+
+                // Y-axis labels
+                const retVal = yMin + (i / numGridLines) * (yMax - yMin);
+                ctx.textAlign = 'right';
+                ctx.fillText((retVal * 100).toFixed(1) + '%', marginLeft - 10, y + 4);
+            }
+
+            // Draw all portfolios (light) and store coordinates for hover
+            ctx.fillStyle = 'rgba(149, 225, 211, 0.3)';
+            allPortfolios.forEach(p => {
+                const x = scaleX(p.std);
+                const y = scaleY(p.return);
+
+                ctx.beginPath();
+                ctx.arc(x, y, 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Store with screen coordinates for hover detection
+                allPortfoliosWithCoords.push({
+                    ...p,
+                    screenX: x,
+                    screenY: y
+                });
+            });
+
+            // Draw efficient frontier and add to hover (with priority)
+            ctx.strokeStyle = '#4ecdc4';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            efficientFrontier.forEach((p, idx) => {
+                const x = scaleX(p.std);
+                const y = scaleY(p.return);
+
+                if (idx === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+
+                // Add efficient frontier points to hover (they'll be found first due to order)
+                allPortfoliosWithCoords.unshift({
+                    ...p,
+                    screenX: x,
+                    screenY: y,
+                    isEfficient: true
+                });
+            });
+            ctx.stroke();
+
+            // Draw CAL if RF included
+            if (includeRF && tangencyPortfolio) {
+                ctx.strokeStyle = '#ff9f43';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([10, 5]);
+                ctx.beginPath();
+
+                // Line from RF to tangency and beyond
+                const rfX = scaleX(0);
+                const rfY = scaleY(rfRate);
+                const tanX = scaleX(tangencyPortfolio.std);
+                const tanY = scaleY(tangencyPortfolio.return);
+
+                // Store CAL line data for hover detection
+                window.calLineData = { rfX, rfY, tanX, tanY, tangencyPortfolio };
+
+                // Extend line to edge of chart
+                const slope = (tanY - rfY) / (tanX - rfX);
+                const extendX = canvas.width - marginRight;
+                const extendY = rfY + slope * (extendX - rfX);
+
+                ctx.moveTo(rfX, rfY);
+                ctx.lineTo(extendX, extendY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Draw CAL portfolios if enabled
+                if (showCALPortfolios) {
+                    const calPortfolios = [
+                        { weight: 0.5, label: '50% T' },
+                        { weight: 1.0, label: '100% T' },
+                        { weight: 1.5, label: '150% T\n(Leverage)' }
+                    ];
+
+                    calPortfolios.forEach(cp => {
+                        // Calculate portfolio on CAL
+                        const portStd = cp.weight * tangencyPortfolio.std;
+                        const portReturn = rfRate + cp.weight * (tangencyPortfolio.return - rfRate);
+
+                        const cpX = scaleX(portStd);
+                        const cpY = scaleY(portReturn);
+
+                        // Different styling based on weight
+                        if (cp.weight === 1.0) {
+                            // Tangency portfolio - skip, already drawn
+                            return;
+                        } else if (cp.weight < 1.0) {
+                            // Lending (conservative)
+                            ctx.fillStyle = '#3498db';
+                        } else {
+                            // Borrowing/leverage (aggressive)
+                            ctx.fillStyle = '#e67e22';
+                        }
+
+                        ctx.beginPath();
+                        ctx.arc(cpX, cpY, 7, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = '#333';
+                        ctx.lineWidth = 1.5;
+                        ctx.stroke();
+
+                        // Label
+                        ctx.fillStyle = '#333';
+                        ctx.font = 'bold 10px sans-serif';
+                        ctx.textAlign = 'center';
+                        const labelY = cp.weight > 1.0 ? cpY + 20 : cpY - 12;
+                        ctx.fillText(cp.label.split('\n')[0], cpX, labelY);
+                        if (cp.label.includes('\n')) {
+                            ctx.fillText(cp.label.split('\n')[1], cpX, labelY + 11);
+                        }
+
+                        // Add to hover
+                        allPortfoliosWithCoords.unshift({
+                            return: portReturn,
+                            std: portStd,
+                            weights: tangencyPortfolio.weights,
+                            screenX: cpX,
+                            screenY: cpY,
+                            isCALPortfolio: true,
+                            calWeight: cp.weight,
+                            calLabel: cp.label
+                        });
+                    });
+                }
+
+                // Draw RF point
+                ctx.fillStyle = '#2ecc71';
+                ctx.beginPath();
+                ctx.arc(rfX, rfY, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#27ae60';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Label RF
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText('RF', rfX + 12, rfY + 4);
+
+                // Draw tangency portfolio
+                ctx.fillStyle = '#ffd700';
+                ctx.beginPath();
+                ctx.arc(tanX, tanY, 10, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Label tangency
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Tangency', tanX, tanY - 15);
+
+                // Add tangency to hover (with high priority)
+                allPortfoliosWithCoords.unshift({
+                    ...tangencyPortfolio,
+                    screenX: tanX,
+                    screenY: tanY,
+                    isTangency: true
+                });
+            }
+
+            // Draw individual stocks
+            individualStocks.forEach((p, idx) => {
+                const x = scaleX(p.std);
+                const y = scaleY(p.return);
+
+                ctx.fillStyle = stocks[idx].color;
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Label
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(stocks[idx].name, x, y - 15);
+
+                // Add individual stocks to hover (with high priority)
+                allPortfoliosWithCoords.unshift({
+                    ...p,
+                    screenX: x,
+                    screenY: y,
+                    stockName: stocks[idx].name,
+                    isIndividualStock: true
+                });
+            });
+
+            // Draw utility curves if enabled
+            if (showUtilityCurves && currentView === 'markowitz') {
+                drawUtilityCurves(ctx, scaleX, scaleY, tangencyPortfolio, efficientFrontier, xMin, xMax, yMin, yMax);
+            }
+
+            // Display tangency portfolio info
+            if (includeRF && tangencyPortfolio) {
+                const infoDiv = document.getElementById('portfolio-info');
+                const detailsDiv = document.getElementById('portfolio-details');
+
+                const sharpe = ((tangencyPortfolio.return - rfRate) / tangencyPortfolio.std).toFixed(3);
+
+                let html = `
+                    <p style="margin-bottom: 10px;">
+                        <strong>Expected Return:</strong> ${(tangencyPortfolio.return * 100).toFixed(2)}%<br>
+                        <strong>Standard Deviation:</strong> ${(tangencyPortfolio.std * 100).toFixed(2)}%<br>
+                        <strong>Sharpe Ratio:</strong> ${sharpe}
+                    </p>
+                    <div class="portfolio-weights">
+                `;
+
+                tangencyPortfolio.weights.forEach((w, idx) => {
+                    html += `
+                        <div class="weight-item">
+                            <span>${stocks[idx].name}:</span>
+                            <strong>${(w * 100).toFixed(1)}%</strong>
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+                detailsDiv.innerHTML = html;
+                infoDiv.classList.add('visible');
+            } else {
+                document.getElementById('portfolio-info').classList.remove('visible');
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

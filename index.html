@@ -295,6 +295,112 @@
             border: 2px solid #333;
         }
 
+        .return-input-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .return-input-row input {
+            flex: 1;
+        }
+
+        .news-shock-buttons {
+            display: flex;
+            gap: 4px;
+        }
+
+        .news-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .news-btn.news-positive {
+            background: #d4edda;
+            border: 1px solid #28a745;
+        }
+
+        .news-btn.news-positive:hover {
+            background: #28a745;
+            transform: scale(1.1);
+        }
+
+        .news-btn.news-negative {
+            background: #f8d7da;
+            border: 1px solid #dc3545;
+        }
+
+        .news-btn.news-negative:hover {
+            background: #dc3545;
+            transform: scale(1.1);
+        }
+
+        .news-shock-panel {
+            background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+        }
+
+        .news-shock-panel h3 {
+            color: #856404;
+            font-size: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .news-shock-panel .news-buttons-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .news-shock-panel .stock-news-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .news-shock-panel .stock-news-label {
+            font-weight: 600;
+            font-size: 13px;
+            min-width: 60px;
+        }
+
+        .news-shock-panel .reset-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-left: auto;
+        }
+
+        .news-shock-panel .reset-btn:hover {
+            background: #545b62;
+            transform: scale(1.05);
+        }
+
         .input-group {
             margin-bottom: 10px;
         }
@@ -1086,6 +1192,7 @@
 
         function initializeStocks() {
             stocks = presets[currentPreset][numStocks].map(s => ({...s}));
+            storeOriginalMeans(); // Store for reset functionality
         }
 
         function setupEventListeners() {
@@ -1548,7 +1655,13 @@
                     </div>
                     <div class="input-group">
                         <label>Expected Return (%)</label>
-                        <input type="number" class="stock-mean" data-idx="${idx}" value="${stock.mean}" step="0.5" min="-20" max="50">
+                        <div class="return-input-row">
+                            <input type="number" class="stock-mean" data-idx="${idx}" value="${stock.mean}" step="0.5" min="-20" max="50">
+                            <div class="news-shock-buttons">
+                                <button class="news-btn news-positive" data-idx="${idx}" title="Positive News (+2%)">📈</button>
+                                <button class="news-btn news-negative" data-idx="${idx}" title="Negative News (-2%)">📉</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="input-group">
                         <label>Standard Deviation (%)</label>
@@ -1588,7 +1701,87 @@
                         correlationMatrix[j][i] = val; // Symmetric
                     });
                 });
+
+                // News shock button listeners
+                div.querySelector('.news-positive').addEventListener('click', (e) => {
+                    applyNewsShock(idx, 2);
+                });
+
+                div.querySelector('.news-negative').addEventListener('click', (e) => {
+                    applyNewsShock(idx, -2);
+                });
             });
+
+            // Also render the news shock panel
+            renderNewsShockPanel();
+        }
+
+        // Apply news shock to a stock
+        function applyNewsShock(stockIdx, change) {
+            stocks[stockIdx].mean += change;
+            // Update the input field
+            const input = document.querySelector(`.stock-mean[data-idx="${stockIdx}"]`);
+            if (input) {
+                input.value = stocks[stockIdx].mean;
+            }
+            // Flash effect on the stock input
+            const stockDiv = input.closest('.stock-inputs');
+            if (stockDiv) {
+                stockDiv.style.transition = 'background-color 0.3s';
+                stockDiv.style.backgroundColor = change > 0 ? '#d4edda' : '#f8d7da';
+                setTimeout(() => {
+                    stockDiv.style.backgroundColor = '';
+                }, 500);
+            }
+            // Update visualization
+            updateVisualization();
+            // Update news panel
+            renderNewsShockPanel();
+        }
+
+        // Store original means for reset
+        let originalMeans = [];
+
+        function storeOriginalMeans() {
+            originalMeans = stocks.map(s => s.mean);
+        }
+
+        function resetToOriginal() {
+            stocks.forEach((stock, idx) => {
+                if (originalMeans[idx] !== undefined) {
+                    stock.mean = originalMeans[idx];
+                }
+            });
+            renderStockInputs();
+            updateVisualization();
+        }
+
+        // Render news shock panel at top of controls
+        function renderNewsShockPanel() {
+            let panel = document.getElementById('news-shock-panel');
+            if (!panel) {
+                panel = document.createElement('div');
+                panel.id = 'news-shock-panel';
+                panel.className = 'news-shock-panel';
+                const controlsDiv = document.querySelector('.controls');
+                if (controlsDiv) {
+                    controlsDiv.insertBefore(panel, controlsDiv.firstChild);
+                }
+            }
+
+            panel.innerHTML = `
+                <h3>📰 News Shocks</h3>
+                <div class="news-buttons-row">
+                    ${stocks.map((stock, idx) => `
+                        <div class="stock-news-group">
+                            <span class="stock-news-label" style="color: ${stock.color};">${stock.name}</span>
+                            <button class="news-btn news-positive" onclick="applyNewsShock(${idx}, 2)" title="Good news: +2%">📈</button>
+                            <button class="news-btn news-negative" onclick="applyNewsShock(${idx}, -2)" title="Bad news: -2%">📉</button>
+                        </div>
+                    `).join('')}
+                    <button class="reset-btn" onclick="resetToOriginal()">🔄 Reset</button>
+                </div>
+            `;
         }
 
         // Portfolio calculations

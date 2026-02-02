@@ -76,6 +76,12 @@ if 'animation_step' not in st.session_state:
     st.session_state.animation_step = 0
 if 'animating_stock' not in st.session_state:
     st.session_state.animating_stock = None
+if 'frozen_market_ret' not in st.session_state:
+    st.session_state.frozen_market_ret = None
+if 'frozen_beta' not in st.session_state:
+    st.session_state.frozen_beta = None
+if 'equilibrium_return' not in st.session_state:
+    st.session_state.equilibrium_return = None
 
 # =============================================================================
 # Helper Functions
@@ -355,31 +361,43 @@ with col_right:
 
     fig2, ax2 = plt.subplots(figsize=(8, 6))
 
+    # During animation, use FROZEN market return for SML so it doesn't move
+    sml_market_ret = st.session_state.frozen_market_ret if st.session_state.frozen_market_ret else tangency_ret
+
     # SML
     beta_range = np.linspace(-0.2, max(betas) + 0.5, 50)
-    sml_returns = rf + beta_range * (tangency_ret - rf)
+    sml_returns = rf + beta_range * (sml_market_ret - rf)
     ax2.plot(beta_range, sml_returns * 100, 'r-', linewidth=2.5, label='SML')
 
     # Individual assets
     for i in range(n_assets):
+        # During animation, use frozen values for the animated stock
+        if st.session_state.animating_stock == i and st.session_state.frozen_beta:
+            stock_beta = st.session_state.frozen_beta
+            expected_capm = st.session_state.equilibrium_return
+        else:
+            stock_beta = betas[i]
+            expected_capm = rf + betas[i] * (sml_market_ret - rf)
+
+        stock_alpha = mu_assets[i] - expected_capm
+
         # Color based on alpha
-        if alphas[i] > 0.005:
+        if stock_alpha > 0.005:
             color = '#27ae60'  # Green (undervalued)
             marker_label = f"{st.session_state.asset_names[i]} (α>0)"
-        elif alphas[i] < -0.005:
+        elif stock_alpha < -0.005:
             color = '#e74c3c'  # Red (overvalued)
             marker_label = f"{st.session_state.asset_names[i]} (α<0)"
         else:
             color = colors[i]
             marker_label = st.session_state.asset_names[i]
 
-        ax2.scatter(betas[i], mu_assets[i] * 100, s=150, c=color,
+        ax2.scatter(stock_beta, mu_assets[i] * 100, s=150, c=color,
                    marker='o', label=marker_label, zorder=5, edgecolor='black', linewidth=1.5)
 
-        # Draw alpha line
-        expected_capm = (rf + betas[i] * (tangency_ret - rf)) * 100
-        if abs(alphas[i]) > 0.005:
-            ax2.plot([betas[i], betas[i]], [expected_capm, mu_assets[i] * 100],
+        # Draw alpha line (shows distance from SML)
+        if abs(stock_alpha) > 0.005:
+            ax2.plot([stock_beta, stock_beta], [expected_capm * 100, mu_assets[i] * 100],
                     '--', color=color, linewidth=2, alpha=0.7)
 
     # Market portfolio
@@ -447,11 +465,16 @@ with anim_col1:
 
 with anim_col2:
     if st.button("▶️ Start Animation"):
+        # FREEZE the market portfolio BEFORE the shock
+        st.session_state.frozen_market_ret = tangency_ret
+        st.session_state.frozen_beta = betas[anim_idx]
+        st.session_state.equilibrium_return = rf + betas[anim_idx] * (tangency_ret - rf)
+
         st.session_state.animating_stock = anim_idx
         st.session_state.animation_step = 1
-        # Apply initial shock
-        st.session_state.mu_assets[anim_idx] += 4.0
-        st.session_state.shock_history.append(f"⚖️ Animation: {anim_stock} +4%")
+        # Apply initial shock (+3%)
+        st.session_state.mu_assets[anim_idx] += 3.0
+        st.session_state.shock_history.append(f"⚖️ Animation: {anim_stock} +3%")
         st.rerun()
 
 # Animation steps
@@ -459,11 +482,16 @@ if st.session_state.animation_step > 0 and st.session_state.animating_stock is n
     idx = st.session_state.animating_stock
     stock_name = st.session_state.asset_names[idx]
 
+    # Use FROZEN values to calculate alpha (so SML stays fixed)
+    eq_ret = st.session_state.equilibrium_return
+    current_ret = st.session_state.mu_assets[idx] / 100
+    alpha = (current_ret - eq_ret) * 100 if eq_ret else 0
+
     steps = {
-        1: f"📢 **Step 1**: News shock! {stock_name} expected return jumps (now above SML = positive alpha)",
-        2: f"💡 **Step 2**: {stock_name} is UNDERVALUED. Investors want to buy it!",
-        3: f"📈 **Step 3**: Buying pressure increases price → Expected return falls",
-        4: f"⚖️ **Step 4**: Equilibrium restored! {stock_name} back on SML"
+        1: f"📢 **Step 1**: News shock! {stock_name} E[R] = {current_ret*100:.1f}%. Alpha = +{alpha:.1f}% (above SML!)",
+        2: f"💡 **Step 2**: {stock_name} is UNDERVALUED with α = +{alpha:.1f}%. Investors want to BUY!",
+        3: f"📈 **Step 3**: Buying pressure → price rises → E[R] falls. Alpha shrinking...",
+        4: f"⚖️ **Step 4**: Equilibrium restored! {stock_name} back on SML. Alpha = 0%"
     }
 
     st.info(steps.get(st.session_state.animation_step, "Animation complete"))
@@ -473,29 +501,37 @@ if st.session_state.animation_step > 0 and st.session_state.animating_stock is n
         if st.button("➡️ Next Step"):
             st.session_state.animation_step += 1
             if st.session_state.animation_step == 3:
-                # Partial adjustment
-                target = rf + betas[idx] * (tangency_ret - rf)
-                current = st.session_state.mu_assets[idx] / 100
-                st.session_state.mu_assets[idx] = ((current + target) / 2) * 100
+                # Partial adjustment - use FROZEN equilibrium return
+                target = st.session_state.equilibrium_return * 100
+                current = st.session_state.mu_assets[idx]
+                st.session_state.mu_assets[idx] = (current + target) / 2
             elif st.session_state.animation_step == 4:
-                # Full equilibrium
-                target = rf + betas[idx] * (tangency_ret - rf)
-                st.session_state.mu_assets[idx] = target * 100
+                # Full equilibrium - use FROZEN equilibrium return
+                st.session_state.mu_assets[idx] = st.session_state.equilibrium_return * 100
             elif st.session_state.animation_step > 4:
                 st.session_state.animation_step = 0
                 st.session_state.animating_stock = None
+                st.session_state.frozen_market_ret = None
+                st.session_state.frozen_beta = None
+                st.session_state.equilibrium_return = None
             st.rerun()
 
     with col_b:
         if st.button("⏹️ Stop"):
             st.session_state.animation_step = 0
             st.session_state.animating_stock = None
+            st.session_state.frozen_market_ret = None
+            st.session_state.frozen_beta = None
+            st.session_state.equilibrium_return = None
             st.rerun()
 
     with col_c:
         if st.button("🔄 Reset & Stop"):
             st.session_state.animation_step = 0
             st.session_state.animating_stock = None
+            st.session_state.frozen_market_ret = None
+            st.session_state.frozen_beta = None
+            st.session_state.equilibrium_return = None
             if st.session_state.original_mu:
                 st.session_state.mu_assets = st.session_state.original_mu.copy()
             st.rerun()

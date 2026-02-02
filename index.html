@@ -1754,7 +1754,9 @@
         let animationStep = 0;
         let animationStockIdx = null;
         let preShockMean = null;
-        let targetMean = null;
+        let frozenMarketReturn = null;  // Store market return BEFORE shock
+        let frozenBeta = null;          // Store beta BEFORE shock
+        let equilibriumReturn = null;   // What return should be on SML
 
         function storeOriginalMeans() {
             originalMeans = stocks.map(s => s.mean);
@@ -1773,14 +1775,14 @@
                 xMin: 0,
                 xMax: Math.max(0.4, maxStd * 1.8),
                 yMin: Math.min(-0.02, rfRate - 0.02),
-                yMax: Math.max(0.25, maxMean * 1.5)
+                yMax: Math.max(0.30, maxMean * 1.8)
             };
 
             lockedAxisBounds.capm = {
                 xMin: 0,
                 xMax: 2.0,
                 yMin: Math.min(0, rfRate - 0.02),
-                yMax: Math.max(0.25, maxMean * 1.5)
+                yMax: Math.max(0.25, maxMean * 1.8)
             };
         }
 
@@ -1799,28 +1801,38 @@
         function startEquilibriumAnimation(stockIdx) {
             if (isAnimating) return;
 
-            // First apply a news shock
-            const shockAmount = 4; // +4% shock
+            // IMPORTANT: Calculate and FREEZE the market portfolio BEFORE the shock
+            const tangencyBefore = findTangencyPortfolio();
+            if (!tangencyBefore) return;
+
+            frozenMarketReturn = tangencyBefore.return;
+            const { beta } = calculateBeta(stockIdx, tangencyBefore);
+            frozenBeta = beta;
+
+            // Calculate what the equilibrium return should be (on SML with frozen market)
+            equilibriumReturn = rfRate + frozenBeta * (frozenMarketReturn - rfRate);
+
+            // Store pre-shock mean
             preShockMean = stocks[stockIdx].mean;
+
+            // Apply a modest news shock (+3%)
+            const shockAmount = 3;
             stocks[stockIdx].mean += shockAmount;
-
-            // Calculate what the equilibrium return should be (on SML)
-            const tangency = findTangencyPortfolio();
-            if (!tangency) return;
-
-            const marketReturn = tangency.return;
-            const { beta } = calculateBeta(stockIdx, tangency);
-            targetMean = (rfRate + beta * (marketReturn - rfRate)) * 100;
 
             isAnimating = true;
             animationStep = 0;
             animationStockIdx = stockIdx;
             lockAxes = true;
+            captureAxisBounds(); // Lock axes at this point
+
+            // Calculate alpha (difference from equilibrium)
+            const currentReturn = stocks[stockIdx].mean / 100;
+            const alpha = (currentReturn - equilibriumReturn) * 100;
 
             // Update display
             renderStockInputs();
             updateVisualization();
-            showAnimationStatus(`Step 1: News shock! ${stocks[stockIdx].name} expected return jumps to ${stocks[stockIdx].mean.toFixed(1)}% (above SML)`);
+            showAnimationStatus(`Step 1: News shock! ${stocks[stockIdx].name} expected return jumps to ${stocks[stockIdx].mean.toFixed(1)}%.<br>Alpha = +${alpha.toFixed(1)}% (above SML - undervalued!)`);
 
             // Show step controls
             showStepControls();
@@ -1831,23 +1843,28 @@
 
             animationStep++;
             const stock = stocks[animationStockIdx];
+            const targetMean = equilibriumReturn * 100; // Convert to percentage
 
             if (animationStep === 1) {
                 // Step 2: Explain mispricing
-                showAnimationStatus(`Step 2: ${stock.name} is now UNDERVALUED (positive alpha). Investors want to buy it!`);
+                const currentReturn = stock.mean / 100;
+                const alpha = (currentReturn - equilibriumReturn) * 100;
+                showAnimationStatus(`Step 2: ${stock.name} is UNDERVALUED with α = +${alpha.toFixed(1)}%.<br>Investors recognize the opportunity and want to BUY!`);
             } else if (animationStep === 2) {
                 // Step 3: Price starts adjusting (expected return decreases as price rises)
-                const adjustment = (stock.mean - targetMean) * 0.5;
-                stock.mean -= adjustment;
+                // Move halfway toward equilibrium
+                stock.mean = (stock.mean + targetMean) / 2;
+                const currentReturn = stock.mean / 100;
+                const alpha = (currentReturn - equilibriumReturn) * 100;
                 renderStockInputs();
                 updateVisualization();
-                showAnimationStatus(`Step 3: Buying pressure increases price → Expected return falls to ${stock.mean.toFixed(1)}%`);
+                showAnimationStatus(`Step 3: Buying pressure increases price → Expected return falls to ${stock.mean.toFixed(1)}%.<br>Alpha shrinks to +${alpha.toFixed(1)}%`);
             } else if (animationStep === 3) {
                 // Step 4: Full equilibrium
                 stock.mean = targetMean;
                 renderStockInputs();
                 updateVisualization();
-                showAnimationStatus(`Step 4: Equilibrium restored! ${stock.name} is back on the SML at ${stock.mean.toFixed(1)}%`);
+                showAnimationStatus(`Step 4: Equilibrium restored! ${stock.name} is back on the SML.<br>E[R] = ${stock.mean.toFixed(1)}%, Alpha = 0%`);
             } else {
                 // Animation complete
                 stopEquilibriumAnimation();
@@ -1858,6 +1875,9 @@
             isAnimating = false;
             animationStep = 0;
             animationStockIdx = null;
+            frozenMarketReturn = null;
+            frozenBeta = null;
+            equilibriumReturn = null;
             lockAxes = false;
             hideStepControls();
             hideAnimationStatus();
@@ -2298,7 +2318,8 @@
             }
 
             // Market portfolio = tangency portfolio
-            const marketReturn = tangencyPortfolio.return;
+            // DURING ANIMATION: use frozen market values so SML doesn't move
+            const marketReturn = (isAnimating && frozenMarketReturn !== null) ? frozenMarketReturn : tangencyPortfolio.return;
             const marketStd = tangencyPortfolio.std;
 
             // Update market display
@@ -2306,18 +2327,31 @@
 
             // Calculate betas and alphas for each stock
             const stocksWithBeta = stocks.map((stock, idx) => {
-                const { beta, marketCorr } = calculateBeta(idx, tangencyPortfolio);
-                const alpha = calculateAlpha(idx, beta, marketReturn);
+                // During animation, use frozen beta for the animated stock
+                let beta, marketCorr;
+                if (isAnimating && idx === animationStockIdx && frozenBeta !== null) {
+                    beta = frozenBeta;
+                    marketCorr = 0; // Not relevant during animation
+                } else {
+                    const result = calculateBeta(idx, tangencyPortfolio);
+                    beta = result.beta;
+                    marketCorr = result.marketCorr;
+                }
+
+                // Calculate expected return using the (possibly frozen) market return
                 const expectedReturnCAPM = rfRate + beta * (marketReturn - rfRate);
+                const actualReturn = stock.mean / 100;
+                const alpha = actualReturn - expectedReturnCAPM;
+
                 return {
                     ...stock,
                     beta,
                     alpha,
-                    actualReturn: stock.mean / 100,
+                    actualReturn,
                     expectedReturnCAPM,
                     marketCorr,
-                    isOvervalued: alpha < 0,
-                    isUndervalued: alpha > 0
+                    isOvervalued: alpha < -0.001,
+                    isUndervalued: alpha > 0.001
                 };
             });
 
